@@ -833,22 +833,12 @@
             if(!tStats[q.topic]) tStats[q.topic] = {t:0, c:0, w:0}; tStats[q.topic].t++;
             
             let isWrong = false; let isSkipped = false;
-
             let qMark = 1, qNeg = 0.33;
 
-            if (mode === '2') { // CSAT
-                qMark = 2.5; 
-                qNeg = 0.8333; 
-                modeLabel = "Forced CSAT (+2.5 / -0.83)";
-            } else if (mode === '1') { // GS 1
-                qMark = 2.0; 
-                qNeg = 0.6666; 
-                modeLabel = "Forced GS Paper 1 (+2.0 / -0.66)";
-            } else {
-                qMark = q.marks ? parseFloat(q.marks) : 2.0; 
-                qNeg = q.negative ? parseFloat(q.negative) : (qMark * 0.3333);
-                modeLabel = "Auto-Detected from JSON";
-            }
+            // Scoring Logic
+            if (mode === '2') { qMark = 2.5; qNeg = 0.8333; modeLabel = "Forced CSAT"; } 
+            else if (mode === '1') { qMark = 2.0; qNeg = 0.6666; modeLabel = "Forced GS 1"; } 
+            else { qMark = q.marks ? parseFloat(q.marks) : 2.0; qNeg = q.negative ? parseFloat(q.negative) : (qMark * 0.3333); modeLabel = "Auto-Detected"; }
 
             if(ans === undefined) { skip++; isSkipped=true; } 
             else {
@@ -880,12 +870,8 @@
         document.getElementById('result-screen').classList.add('active');
         
         const reviewBtn = document.getElementById('smart-review-btn');
-        if(reviewSet.length > 0) {
-            reviewBtn.style.display = 'flex'; 
-            reviewBtn.innerText = "Smart Review";
-        } else {
-            reviewBtn.style.display = 'none';
-        }
+        reviewBtn.style.display = reviewSet.length > 0 ? 'flex' : 'none';
+        if(reviewSet.length > 0) reviewBtn.innerText = "Smart Review";
 
         document.getElementById('res-fname').innerText = activeFile.replace(/\.json$/i, '');
         document.getElementById('res-mode').innerText = modeLabel;
@@ -911,8 +897,8 @@
             const ans = responses[i]; const userConf = confidence[i] || 'None';
             let cls = 'skip', uAns = 'Skipped', status = 'Skipped';
             
-            // --- FIX: SAFE TEXT EXTRACTION ---
-            let correctText = (q.options && q.options[q.answer]) ? q.options[q.answer] : "Correct option not detected";
+            // --- FIX: Robust Text Fetching to prevent "undefined" ---
+            let correctText = (q.options && q.options[q.answer]) ? q.options[q.answer] : "Correct option not found";
             
             if(ans !== undefined) {
                 if(ans === q.answer) { cls='correct'; uAns=correctText; status='Correct'; }
